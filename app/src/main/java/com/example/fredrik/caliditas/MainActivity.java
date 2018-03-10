@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, new IntentFilter("incomingData"));
     }
 
-    BroadcastReceiver socketReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver socketReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String data = intent.getStringExtra("data");

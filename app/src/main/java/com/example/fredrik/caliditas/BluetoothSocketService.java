@@ -4,8 +4,10 @@ import android.app.IntentService;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -21,8 +23,8 @@ import java.util.UUID;
 public class BluetoothSocketService extends IntentService {
     private static final String TAG = "BluetoothSocketService";
 
-    private BluetoothDevice connectedDevice = null;
     private BluetoothSocket socket = null;
+    private BluetoothDevice currentDevice = null;
 
     private UUID deviceUUID;
     private Handler handler;
@@ -39,6 +41,11 @@ public class BluetoothSocketService extends IntentService {
 
         handler = new Handler();
         deviceUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+        IntentFilter bluetoothConnectionFilter = new IntentFilter();
+        bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        registerReceiver(bluetoothConnectionReceiver, bluetoothConnectionFilter);
     }
 
     private void DisplayToast(final String message, final int length) {
@@ -57,9 +64,6 @@ public class BluetoothSocketService extends IntentService {
         InputStream inputStream;
         OutputStream outputStream;
 
-        Log.d(TAG, "Target: " + targetDevice);
-        Log.d(TAG, "Connected: " + connectedDevice);
-
         try {
             socket = targetDevice.createRfcommSocketToServiceRecord(deviceUUID);
 
@@ -68,7 +72,8 @@ public class BluetoothSocketService extends IntentService {
                 socket.connect();
                 DisplayToast("Ansluten till " + targetDevice.getName(), Toast.LENGTH_LONG);
 
-                connectedDevice = targetDevice;
+                currentDevice = targetDevice;
+                SendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_CONNECTED);
 
                 outputStream = socket.getOutputStream();
                 inputStream = socket.getInputStream();
@@ -92,6 +97,9 @@ public class BluetoothSocketService extends IntentService {
                         if (endIndex > -1) {
                             data += tmp.substring(0, endIndex);
 
+                            // Datan skiftar väldigt mycket så vi borde samla in data under 10 sekunder
+                            // innan vi uppdaterar den. Vi skickar då ett medelvärde istället för
+                            // alla värdena för sig och får då ett resultat som skiftar mindre.
                             Intent incomingData = new Intent("incomingData");
                             incomingData.putExtra("data", data);
                             LocalBroadcastManager.getInstance(this).sendBroadcast(incomingData);
@@ -111,13 +119,39 @@ public class BluetoothSocketService extends IntentService {
         }
     }
 
+    private void SendBroadcast(BluetoothDevice device, String status) {
+        Intent broadcastIntent = new Intent("connectionStatus");
+        broadcastIntent.putExtra("device", device);
+        broadcastIntent.putExtra("status", status);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
+    }
+
+    private final BroadcastReceiver bluetoothConnectionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            switch (action) {
+                case BluetoothDevice.ACTION_ACL_CONNECTED:
+                    Log.d(TAG, "Device connected (ACL_CONNECTED)");
+                    break;
+                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                    Log.d(TAG, "Device disconnected (ACL_DISCONNECTED)");
+                    SendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                    break;
+            }
+        }
+    };
+
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        unregisterReceiver(bluetoothConnectionReceiver);
+
         try {
             socket.close();
-            connectedDevice = null;
+            currentDevice = null;
         } catch (IOException e) {
             Log.d(TAG, "Couldn't close socket");
         }

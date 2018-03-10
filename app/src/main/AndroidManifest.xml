@@ -30,7 +30,12 @@
 
         <service
             android:name=".BluetoothSocketService"
-            android:exported="false"></service>
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED"></action>
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED"></action>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

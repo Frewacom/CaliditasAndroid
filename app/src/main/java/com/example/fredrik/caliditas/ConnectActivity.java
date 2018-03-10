@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -35,6 +36,7 @@ public class ConnectActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private ListView availableDevices;
     private BluetoothAdapter bluetoothAdapter;
+    private BluetoothDevice currentDevice;
     private Context context;
 
     private List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
@@ -50,6 +52,8 @@ public class ConnectActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
+
         // Set an item click listener for ListView
         availableDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -58,9 +62,15 @@ public class ConnectActivity extends AppCompatActivity {
 
                 for (BluetoothDevice device : deviceList) {
                     if (device.getName().equals(selectedDevice)) {
-                        Intent bluetoothWorker = new Intent(context, BluetoothSocketService.class);
-                        bluetoothWorker.putExtra("targetDevice", device);
-                        startService(bluetoothWorker);
+                        if (currentDevice == null || !currentDevice.equals(device)) {
+                            currentDevice = device;
+
+                            Intent bluetoothWorker = new Intent(context, BluetoothSocketService.class);
+                            bluetoothWorker.putExtra("targetDevice", device);
+                            startService(bluetoothWorker);
+                        } else {
+                            Toast.makeText(getApplicationContext(),"Du är redan ansluten till denna enhet",Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }
@@ -91,6 +101,18 @@ public class ConnectActivity extends AppCompatActivity {
         }
     }
 
+    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            BluetoothDevice device = intent.getParcelableExtra("device");
+            String status = intent.getStringExtra("status");
+
+            Log.d(TAG, "Received from broadcast: " + device.getName());
+            Log.d(TAG, "Recevied from broadcast: " + status);
+        }
+    };
+
+    // Unused at the moment
     // Create a BroadcastReceiver for ACTION_FOUND.
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
