@@ -34,7 +34,7 @@
         <ListView
             android:id="@+id/availableDevices"
             android:layout_width="match_parent"
-            android:layout_height="69dp"
+            android:layout_height="250dp"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp">
 
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="@dimen/fab_margin"
             android:layout_marginRight="@dimen/fab_margin"
-            android:background="@color/colorAccent"
+            android:background="@color/colorPrimary"
             android:text="@string/disconnect"
             android:textColor="@color/white"
             android:textSize="14sp" />

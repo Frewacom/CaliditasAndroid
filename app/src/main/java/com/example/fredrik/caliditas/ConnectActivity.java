@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -136,7 +138,7 @@ public class ConnectActivity extends AppCompatActivity {
 
     private final void scanForPairedDevices() {
         Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
-        deviceList.clear();
+        deviceNameList.clear();
         deviceList.clear();
 
         if (bondedDevices.isEmpty()) {
@@ -201,6 +203,15 @@ public class ConnectActivity extends AppCompatActivity {
 
         }
     };
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.clear();
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_connect, menu);
+
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
