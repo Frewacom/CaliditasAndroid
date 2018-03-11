@@ -48,8 +48,8 @@ public class BluetoothSocketService extends IntentService {
         IntentFilter bluetoothConnectionFilter = new IntentFilter();
         bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+        registerReceiver(bluetoothConnectionReceiver, bluetoothConnectionFilter);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(bluetoothConnectionReceiver, bluetoothConnectionFilter);
         LocalBroadcastManager.getInstance(this).registerReceiver(closeConnectionReceiver, new IntentFilter("closeConnection"));
     }
 
@@ -117,8 +117,6 @@ public class BluetoothSocketService extends IntentService {
             } catch (IOException e) {
                 if (!plannedDisconnect) {
                     DisplayToast("Kunde ej ansluta till termometern", Toast.LENGTH_LONG);
-                } else {
-                    DisplayToast("Ifrånkopplingen lyckades", Toast.LENGTH_SHORT);
                 }
             }
         } catch(IOException e) {
@@ -155,6 +153,11 @@ public class BluetoothSocketService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(statusIntent);
     }
 
+    private final void sendConnectionClosedBroadcast() {
+        Intent disconnectIntent = new Intent("closeConnection");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(disconnectIntent);
+    }
+
     private final BroadcastReceiver bluetoothConnectionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -166,7 +169,7 @@ public class BluetoothSocketService extends IntentService {
                     break;
                 case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                     Log.d(TAG, "Device disconnected (ACL_DISCONNECTED)");
-                    sendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                    sendConnectionClosedBroadcast();
                     break;
             }
         }
@@ -184,7 +187,7 @@ public class BluetoothSocketService extends IntentService {
     public void onDestroy() {
         super.onDestroy();
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(bluetoothConnectionReceiver);
+        unregisterReceiver(bluetoothConnectionReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(closeConnectionReceiver);
         closeBluetoothConnection();
     }

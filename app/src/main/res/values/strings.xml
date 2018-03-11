@@ -7,4 +7,8 @@
     <string name="celsius">°C</string>
     <string name="not_connected">Ej ansluten</string>
     <string name="disconnect">Koppla ifrån</string>
+    <string name="saveLimit">Spara</string>
+    <string name="addLimit">Sätt gränser</string>
+    <string name="channel_name">Caliditas</string>
+    <string name="channel_description">Varningsnotiser</string>
 </resources>

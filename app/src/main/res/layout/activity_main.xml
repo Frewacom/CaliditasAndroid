@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#ededed"
     tools:context="com.example.fredrik.caliditas.MainActivity">
 
     <ScrollView
@@ -16,7 +16,9 @@
             android:layout_height="fill_parent"
             android:orientation="vertical">
 
-            <include android:id="@+id/toolbar" layout="@layout/toolbar"/>
+            <include
+                android:id="@+id/toolbar"
+                layout="@layout/toolbar" />
 
             <LinearLayout
                 android:id="@+id/linearLayout"
@@ -80,29 +82,20 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp" />
 
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout">
-
                 <Button
-                    android:id="@+id/button"
+                    android:id="@+id/applyLimit"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:text="Button"
-                    tools:layout_editor_absoluteX="15dp"
-                    tools:layout_editor_absoluteY="257dp" />
+                    android:layout_height="60dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="1"
+                    android:background="@color/colorPrimary"
+                    android:paddingBottom="10dp"
+                    android:paddingTop="10dp"
+                    android:text="@string/addLimit"
+                    android:textColor="@color/white" />
+
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 </android.support.constraint.ConstraintLayout>

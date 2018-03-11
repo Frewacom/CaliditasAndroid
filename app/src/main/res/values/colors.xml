@@ -7,4 +7,6 @@
     <color name="white">#ffffff</color>
     <color name="colorAccentDark">#202020</color>
     <color name="colorAccentLight">#a8a8a8</color>
+    <color name="hot">#ff4815</color>
+    <color name="cold">#3388ff</color>
 </resources>
