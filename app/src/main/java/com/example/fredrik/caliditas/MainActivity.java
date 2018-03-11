@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TextView temperature;
     private TextView humidity;
+    private TextView battery;
     private BluetoothDevice currentDevice;
     private BluetoothAdapter bluetoothAdapter;
 
@@ -33,12 +34,13 @@ public class MainActivity extends AppCompatActivity {
 
         temperature = (TextView) findViewById(R.id.temperature);
         humidity = (TextView) findViewById(R.id.humidity);
+        battery = (TextView) findViewById(R.id.battery);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Ej ansluten");
         setSupportActionBar(toolbar);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, new IntentFilter("incomingData"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(closeConnectionReceiver, new IntentFilter("closeConnection"));
     }
 
     private final BroadcastReceiver socketReceiver = new BroadcastReceiver() {
@@ -73,20 +75,20 @@ public class MainActivity extends AppCompatActivity {
 
                 temperature.setText(temp + "°C");
                 humidity.setText("Luftfuktighet: " + hum + "%");
+                battery.setText("Batteri: 100%");
             }
         }
     };
 
-    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver closeConnectionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Received connectionStatus receiver");
-            String status = intent.getStringExtra("status");
-            switch (status) {
-                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
-                    currentDevice = null;
-                    toolbar.setTitle("Ej ansluten");
-            }
+            currentDevice = null;
+            toolbar.setTitle("Ej ansluten");
+            temperature.setText("°C");
+            humidity.setText("-");
+            battery.setText("-");
         }
     };
 
@@ -119,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(connectionStatusReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(socketReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(closeConnectionReceiver);
     }
 }

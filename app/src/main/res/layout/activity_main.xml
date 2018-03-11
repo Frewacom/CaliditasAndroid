@@ -39,7 +39,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:text="27.2 °C"
+                    android:text="°C"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textColor="@color/white"
@@ -54,7 +54,7 @@
                     android:id="@+id/humidity"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Luftfuktighet: 25.8%"
+                    android:text="Luftfuktighet: -"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textColor="@color/colorAccentLight"
@@ -67,10 +67,10 @@
                     android:layout_height="2dp" />
 
                 <TextView
-                    android:id="@+id/textView3"
+                    android:id="@+id/battery"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Batteri: 100%"
+                    android:text="Batteri: -"
                     android:textAlignment="center"
                     android:textAllCaps="false"
                     android:textColor="@color/colorAccentLight"

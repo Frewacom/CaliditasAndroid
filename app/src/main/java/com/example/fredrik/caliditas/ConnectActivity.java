@@ -63,7 +63,7 @@ public class ConnectActivity extends AppCompatActivity {
         availableDevices = (ListView) findViewById(R.id.availableDevices);
         disconnectButton = (Button) findViewById(R.id.disconnectButton);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("");
+        toolbar.setTitle("Anslut termometer");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
