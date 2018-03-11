@@ -11,8 +11,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="567dp"
-        android:orientation="vertical"
         android:layout_below="@id/toolbar"
+        android:gravity="fill_vertical"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,9 +34,22 @@
         <ListView
             android:id="@+id/availableDevices"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="69dp"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp" />
+            android:layout_marginRight="10dp">
+
+        </ListView>
+
+        <Button
+            android:id="@+id/disconnectButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/fab_margin"
+            android:layout_marginRight="@dimen/fab_margin"
+            android:background="@color/colorAccent"
+            android:text="@string/disconnect"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
 
     </LinearLayout>
 

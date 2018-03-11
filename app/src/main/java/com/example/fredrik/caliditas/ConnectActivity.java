@@ -35,9 +35,11 @@ public class ConnectActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private ListView availableDevices;
+    private Button disconnectButton;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothDevice currentDevice;
     private Context context;
+    private boolean bluetoothReady = false;
 
     private List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
     private List<String> deviceNameList = new ArrayList<String>();
@@ -47,12 +49,35 @@ public class ConnectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connect);
 
+        BluetoothDevice device = getIntent().getParcelableExtra("device");
+
+        if (device != null) {
+            currentDevice = device;
+        }
+
         context = this;
         availableDevices = (ListView) findViewById(R.id.availableDevices);
+        disconnectButton = (Button) findViewById(R.id.disconnectButton);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
+        registerReceivers();
+
+        disconnectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent disconnectIntent = new Intent("closeConnection");
+                LocalBroadcastManager.getInstance(ConnectActivity.this).sendBroadcast(disconnectIntent);
+                currentDevice = null;
+
+                Toast.makeText(
+                        getApplicationContext(),
+                        "Kopplar ifrån..",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+        });
 
         // Set an item click listener for ListView
         availableDevices.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -60,61 +85,76 @@ public class ConnectActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String selectedDevice = (String) parent.getItemAtPosition(position);
 
-                for (BluetoothDevice device : deviceList) {
-                    if (device.getName().equals(selectedDevice)) {
-                        if (currentDevice == null || !currentDevice.equals(device)) {
-                            currentDevice = device;
-
-                            Intent bluetoothWorker = new Intent(context, BluetoothSocketService.class);
-                            bluetoothWorker.putExtra("targetDevice", device);
-                            startService(bluetoothWorker);
-                        } else {
-                            Toast.makeText(getApplicationContext(),"Du är redan ansluten till denna enhet",Toast.LENGTH_SHORT).show();
+                if (bluetoothReady) {
+                    for (BluetoothDevice device : deviceList) {
+                        if (device.getName().equals(selectedDevice)) {
+                            if (currentDevice == null || !currentDevice.equals(device)) {
+                                Intent bluetoothWorker = new Intent(context, BluetoothSocketService.class);
+                                bluetoothWorker.putExtra("targetDevice", device);
+                                startService(bluetoothWorker);
+                            } else {
+                                Toast.makeText(
+                                        getApplicationContext(),
+                                        "Du är redan ansluten till denna enhet",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
                         }
                     }
+                } else {
+                    checkBluetoothStatus();
                 }
             }
         });
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        checkBluetoothStatus();
+    }
+
+    private void registerReceivers() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(bluetoothStatusReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
+    }
+
+    private final void checkBluetoothStatus() {
         if (bluetoothAdapter == null) {
             Toast.makeText(getApplicationContext(),"Din enhet stödjer inte bluetooth",Toast.LENGTH_SHORT).show();
-        } else if (!bluetoothAdapter.isEnabled())
-        {
+
+            bluetoothReady = false;
+        } else if (!bluetoothAdapter.isEnabled()) {
             Intent enableAdapter = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableAdapter, 0);
         } else {
-            Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
-
-            if (bondedDevices.isEmpty()) {
-                Toast.makeText(getApplicationContext(),"Para ihop din enhet först via inställningarna",Toast.LENGTH_SHORT).show();
-            } else {
-                for (BluetoothDevice device : bondedDevices) {
-                    deviceNameList.add(device.getName());
-                    deviceList.add(device);
-                }
-
-                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, deviceNameList);
-                availableDevices.setAdapter(arrayAdapter);
+            if (deviceList.isEmpty()) {
+                scanForPairedDevices();
             }
+
+            bluetoothReady = true;
         }
     }
 
-    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BluetoothDevice device = intent.getParcelableExtra("device");
-            String status = intent.getStringExtra("status");
+    private final void scanForPairedDevices() {
+        Set<BluetoothDevice> bondedDevices = bluetoothAdapter.getBondedDevices();
+        deviceList.clear();
+        deviceList.clear();
 
-            Log.d(TAG, "Received from broadcast: " + device.getName());
-            Log.d(TAG, "Recevied from broadcast: " + status);
+        if (bondedDevices.isEmpty()) {
+            Toast.makeText(getApplicationContext(),"Para först ihop din enhet via inställningarna",Toast.LENGTH_SHORT).show();
+        } else {
+            for (BluetoothDevice device : bondedDevices) {
+                deviceNameList.add(device.getName());
+                deviceList.add(device);
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, deviceNameList);
+            availableDevices.setAdapter(arrayAdapter);
         }
-    };
+    }
 
-    // Unused at the moment
     // Create a BroadcastReceiver for ACTION_FOUND.
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver bluetoothStatusReceiver = new BroadcastReceiver() {
+        @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(bluetoothAdapter.ACTION_STATE_CHANGED)) {
@@ -127,10 +167,13 @@ public class ConnectActivity extends AppCompatActivity {
 
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         Log.d(TAG, "BT State turning off");
+                        bluetoothReady = false;
                         break;
 
                     case BluetoothAdapter.STATE_ON:
                         Log.d(TAG, "BT State on");
+                        bluetoothReady = true;
+                        scanForPairedDevices();
                         break;
 
                     case BluetoothAdapter.STATE_TURNING_ON:
@@ -141,8 +184,29 @@ public class ConnectActivity extends AppCompatActivity {
         }
     };
 
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received connectionStatus receiver");
+            String status = intent.getStringExtra("status");
+            switch (status) {
+                case BluetoothDevice.ACTION_ACL_CONNECTED:
+                    BluetoothDevice device = intent.getParcelableExtra("device");
+                    currentDevice = device;
+                    break;
+                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                    currentDevice = null;
+            }
+
+        }
+    };
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(connectionStatusReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(bluetoothStatusReceiver);
     }
 }

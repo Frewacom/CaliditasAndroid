@@ -25,6 +25,9 @@ public class BluetoothSocketService extends IntentService {
 
     private BluetoothSocket socket = null;
     private BluetoothDevice currentDevice = null;
+    private InputStream inputStream;
+    private OutputStream outputStream;
+    private boolean plannedDisconnect = false;
 
     private UUID deviceUUID;
     private Handler handler;
@@ -45,7 +48,9 @@ public class BluetoothSocketService extends IntentService {
         IntentFilter bluetoothConnectionFilter = new IntentFilter();
         bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         bluetoothConnectionFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-        registerReceiver(bluetoothConnectionReceiver, bluetoothConnectionFilter);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(bluetoothConnectionReceiver, bluetoothConnectionFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(closeConnectionReceiver, new IntentFilter("closeConnection"));
     }
 
     private void DisplayToast(final String message, final int length) {
@@ -61,19 +66,16 @@ public class BluetoothSocketService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         BluetoothDevice targetDevice = intent.getParcelableExtra("targetDevice");
 
-        InputStream inputStream;
-        OutputStream outputStream;
-
         try {
             socket = targetDevice.createRfcommSocketToServiceRecord(deviceUUID);
 
             try {
-                DisplayToast("Ansluter till termometern", Toast.LENGTH_LONG);
+                DisplayToast("Ansluter till termometern", Toast.LENGTH_SHORT);
                 socket.connect();
-                DisplayToast("Ansluten till " + targetDevice.getName(), Toast.LENGTH_LONG);
+                DisplayToast("Ansluten till " + targetDevice.getName(), Toast.LENGTH_SHORT);
 
                 currentDevice = targetDevice;
-                SendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_CONNECTED);
+                sendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_CONNECTED);
 
                 outputStream = socket.getOutputStream();
                 inputStream = socket.getInputStream();
@@ -81,7 +83,7 @@ public class BluetoothSocketService extends IntentService {
                 String tmp = "";
                 String data = "";
 
-                while (true) {
+                while (currentDevice != null) {
                     int byteCount = inputStream.available();
 
                     if(byteCount > 0)
@@ -112,18 +114,44 @@ public class BluetoothSocketService extends IntentService {
                 }
 
             } catch (IOException e) {
-                DisplayToast("Kunde ej ansluta till termometern", Toast.LENGTH_LONG);
+                if (!plannedDisconnect) {
+                    DisplayToast("Kunde ej ansluta till termometern", Toast.LENGTH_LONG);
+                } else {
+                    DisplayToast("Ifrånkopplingen lyckades", Toast.LENGTH_SHORT);
+                }
             }
         } catch(IOException e) {
             DisplayToast("Kunde inte skapa socket", Toast.LENGTH_LONG);
         }
     }
 
-    private void SendBroadcast(BluetoothDevice device, String status) {
-        Intent broadcastIntent = new Intent("connectionStatus");
-        broadcastIntent.putExtra("device", device);
-        broadcastIntent.putExtra("status", status);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
+    private final void closeBluetoothConnection() {
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+            Log.d(TAG, "Couldn't close inputStream");
+        }
+
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            Log.d(TAG, "Couldn't close outputStream");
+        }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            Log.d(TAG, "Couldn't close socket");
+        }
+
+        currentDevice = null;
+    }
+
+    private final void sendBroadcast(BluetoothDevice device, String status) {
+        Intent statusIntent = new Intent("connectionStatus");
+        statusIntent.putExtra("device", device);
+        statusIntent.putExtra("status", status);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(statusIntent);
     }
 
     private final BroadcastReceiver bluetoothConnectionReceiver = new BroadcastReceiver() {
@@ -137,9 +165,17 @@ public class BluetoothSocketService extends IntentService {
                     break;
                 case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                     Log.d(TAG, "Device disconnected (ACL_DISCONNECTED)");
-                    SendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                    sendBroadcast(currentDevice, BluetoothDevice.ACTION_ACL_DISCONNECTED);
                     break;
             }
+        }
+    };
+
+    private final BroadcastReceiver closeConnectionReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            plannedDisconnect = true;
+            closeBluetoothConnection();
         }
     };
 
@@ -147,13 +183,8 @@ public class BluetoothSocketService extends IntentService {
     public void onDestroy() {
         super.onDestroy();
 
-        unregisterReceiver(bluetoothConnectionReceiver);
-
-        try {
-            socket.close();
-            currentDevice = null;
-        } catch (IOException e) {
-            Log.d(TAG, "Couldn't close socket");
-        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(bluetoothConnectionReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(closeConnectionReceiver);
+        closeBluetoothConnection();
     }
 }

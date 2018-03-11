@@ -1,6 +1,7 @@
 package com.example.fredrik.caliditas;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private TextView temperature;
     private TextView humidity;
+    private BluetoothDevice currentDevice;
     private BluetoothAdapter bluetoothAdapter;
 
     @Override
@@ -32,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
         temperature = (TextView) findViewById(R.id.temperature);
         humidity = (TextView) findViewById(R.id.humidity);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Ej ansluten");
         setSupportActionBar(toolbar);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(socketReceiver, new IntentFilter("incomingData"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
     }
 
     private final BroadcastReceiver socketReceiver = new BroadcastReceiver() {
@@ -56,6 +60,24 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private final BroadcastReceiver connectionStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received connectionStatus receiver");
+            String status = intent.getStringExtra("status");
+            switch (status) {
+                case BluetoothDevice.ACTION_ACL_CONNECTED:
+                    BluetoothDevice device = intent.getParcelableExtra("device");
+                    currentDevice = device;
+                    toolbar.setTitle(currentDevice.getName());
+                    break;
+                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                    currentDevice = null;
+                    toolbar.setTitle("Ej ansluten");
+            }
+        }
+    };
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
@@ -69,11 +91,22 @@ public class MainActivity extends AppCompatActivity {
         switch(item.getItemId()) {
             case R.id.action_bluetooth:
                 Intent connectIntent = new Intent(MainActivity.this, ConnectActivity.class);
+                if (currentDevice != null) {
+                    connectIntent.putExtra("device", currentDevice);
+                }
                 startActivity(connectIntent);
 
                 return false;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(connectionStatusReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(socketReceiver);
     }
 }
