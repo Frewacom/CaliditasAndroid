@@ -58,44 +58,38 @@ public class LimitActivity extends AppCompatActivity implements View.OnClickList
         return 0;
     }
 
-    private void setLimits(EditText target, String type) {
+    private void setLimits(EditText target, String type, final Button button) {
         int value = getInputValue(target);
 
         Intent limitIntent = new Intent("setLimit");
         limitIntent.putExtra("type", type);
         limitIntent.putExtra("value", value);
         LocalBroadcastManager.getInstance(this).sendBroadcast(limitIntent);
+
+        if (value != 0) {
+            button.setText("Sparades");
+
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    button.setText("Spara");
+                }
+            }, 2000);
+        }
     }
 
-    private void restoreButtonText(Button button) {
-        button.setText("Spara");
-    }
+
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.lowestTempButton:
-                setLimits(lowestTemp, "min");
-                lowestButton.setText("Sparades");
-                Handler handlerLowest = new Handler();
-                handlerLowest.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        lowestButton.setText("Spara");
-                    }
-                }, 2000);
+                setLimits(lowestTemp, "min", lowestButton);
                 break;
 
             case R.id.highestTempButton:
-                setLimits(highestTemp, "max");
-                highestButton.setText("Sparades");
-                Handler handlerHighest = new Handler();
-                handlerHighest.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        highestButton.setText("Spara");
-                    }
-                }, 2000);
+                setLimits(highestTemp, "max", highestButton);
                 break;
         }
     }

@@ -52,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (getIntent().getIntExtra("notification", 0) != 0) {
+            hasSentNotification = false;
+        }
+
         temperature = (TextView) findViewById(R.id.temperature);
         humidity = (TextView) findViewById(R.id.humidity);
         battery = (TextView) findViewById(R.id.battery);
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private void createNotification(String title, String message) {
         // Create an Intent for the activity you want to start
         Intent resultIntent = new Intent(this, MainActivity.class);
+        resultIntent.putExtra("notification", 1);
         // Create the TaskStackBuilder and add the intent, which inflates the back stack
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addNextIntentWithParentStack(resultIntent);
