@@ -5,4 +5,6 @@
     <color name="colorAccent">#333333</color>
     <color name="foreground_material_light">#262626</color>
     <color name="white">#ffffff</color>
+    <color name="colorAccentDark">#202020</color>
+    <color name="colorAccentLight">#a8a8a8</color>
 </resources>

@@ -104,6 +104,7 @@ public class BluetoothSocketService extends IntentService {
                             // alla värdena för sig och får då ett resultat som skiftar mindre.
                             Intent incomingData = new Intent("incomingData");
                             incomingData.putExtra("data", data);
+                            incomingData.putExtra("device", currentDevice);
                             LocalBroadcastManager.getInstance(this).sendBroadcast(incomingData);
 
                             data = tmp.substring(endIndex, (tmp.length() - 1));
@@ -128,19 +129,19 @@ public class BluetoothSocketService extends IntentService {
     private final void closeBluetoothConnection() {
         try {
             inputStream.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d(TAG, "Couldn't close inputStream");
         }
 
         try {
             outputStream.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d(TAG, "Couldn't close outputStream");
         }
 
         try {
             socket.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.d(TAG, "Couldn't close socket");
         }
 

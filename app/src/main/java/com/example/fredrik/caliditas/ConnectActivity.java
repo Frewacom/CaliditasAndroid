@@ -8,12 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PorterDuff;
 import android.os.AsyncTask;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -61,8 +63,11 @@ public class ConnectActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        registerReceivers();
+        LocalBroadcastManager.getInstance(this).registerReceiver(bluetoothStatusReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
 
         disconnectButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,11 +115,6 @@ public class ConnectActivity extends AppCompatActivity {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         checkBluetoothStatus();
-    }
-
-    private void registerReceivers() {
-        LocalBroadcastManager.getInstance(this).registerReceiver(bluetoothStatusReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
-        LocalBroadcastManager.getInstance(this).registerReceiver(connectionStatusReceiver, new IntentFilter("connectionStatus"));
     }
 
     private final void checkBluetoothStatus() {
@@ -201,6 +201,28 @@ public class ConnectActivity extends AppCompatActivity {
 
         }
     };
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch(item.getItemId()) {
+            case R.id.action_refreshBondedDevices:
+                scanForPairedDevices();
+
+                return false;
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
 
     @Override
     protected void onDestroy() {

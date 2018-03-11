@@ -14,7 +14,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="55dp"
-        android:background="#ededed"
+        android:background="@color/colorAccent"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -23,7 +23,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="25dp" />
+            android:layout_height="50dp" />
 
         <TextView
             android:id="@+id/temperature"
@@ -33,7 +33,7 @@
             android:text="27.2 °C"
             android:textAlignment="center"
             android:textAllCaps="false"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/white"
             android:textSize="45sp"
             android:textStyle="bold" />
 
@@ -47,7 +47,7 @@
             android:layout_height="wrap_content"
             android:text="Luftfuktighet: 25.8%"
             android:textAlignment="center"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/colorAccentLight"
             android:textSize="14sp"
             tools:layout_editor_absoluteX="163dp"
             tools:layout_editor_absoluteY="37dp" />
@@ -62,12 +62,12 @@
             android:layout_height="wrap_content"
             android:text="Batteri: 100%"
             android:textAlignment="center"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/colorAccentLight"
             android:textSize="14sp" />
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="25dp" />
+            android:layout_height="75dp" />
 
     </LinearLayout>
 

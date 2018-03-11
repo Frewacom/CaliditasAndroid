@@ -45,6 +45,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String data = intent.getStringExtra("data");
+            BluetoothDevice device = intent.getParcelableExtra("device");
+
+            if (device != null) {
+                if (currentDevice == null) {
+                    currentDevice = device;
+                } else {
+                    if (!currentDevice.equals(device)) {
+                        currentDevice = device;
+                    }
+                }
+
+                if (!toolbar.getTitle().equals(currentDevice.getName())) {
+                    toolbar.setTitle(currentDevice.getName());
+                }
+            } else {
+                toolbar.setTitle("Ej ansluten");
+            }
 
             data = data.replace("#", "");
             data = data.replaceAll("/[^0-9.]/g", "");
@@ -66,11 +83,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Received connectionStatus receiver");
             String status = intent.getStringExtra("status");
             switch (status) {
-                case BluetoothDevice.ACTION_ACL_CONNECTED:
-                    BluetoothDevice device = intent.getParcelableExtra("device");
-                    currentDevice = device;
-                    toolbar.setTitle(currentDevice.getName());
-                    break;
                 case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                     currentDevice = null;
                     toolbar.setTitle("Ej ansluten");
