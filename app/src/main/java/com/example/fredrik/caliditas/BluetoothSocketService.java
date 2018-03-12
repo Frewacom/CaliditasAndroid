@@ -144,6 +144,9 @@ public class BluetoothSocketService extends IntentService {
         }
 
         currentDevice = null;
+        socket = null;
+        inputStream = null;
+        outputStream = null;
     }
 
     private final void sendBroadcast(BluetoothDevice device, String status) {
@@ -153,8 +156,9 @@ public class BluetoothSocketService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(statusIntent);
     }
 
-    private final void sendConnectionClosedBroadcast() {
+    private final void sendConnectionClosedBroadcast(boolean wasPlanned) {
         Intent disconnectIntent = new Intent("closeConnection");
+        disconnectIntent.putExtra("wasPlanned", wasPlanned);
         LocalBroadcastManager.getInstance(this).sendBroadcast(disconnectIntent);
     }
 
@@ -167,9 +171,17 @@ public class BluetoothSocketService extends IntentService {
                 case BluetoothDevice.ACTION_ACL_CONNECTED:
                     Log.d(TAG, "Device connected (ACL_CONNECTED)");
                     break;
+
                 case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                     Log.d(TAG, "Device disconnected (ACL_DISCONNECTED)");
-                    sendConnectionClosedBroadcast();
+                    Log.d(TAG, "PlannedDisconnect: " + plannedDisconnect);
+
+                    if (plannedDisconnect) {
+                        sendConnectionClosedBroadcast(true);
+                    } else {
+                        sendConnectionClosedBroadcast(false);
+                    }
+
                     break;
             }
         }

@@ -149,9 +149,6 @@ public class MainActivity extends AppCompatActivity {
                 int temp = Math.round(Float.parseFloat(values[0]));
                 int hum = Math.round(Float.parseFloat(values[1]));
 
-                Log.d(TAG, "Max-temp: " + maxTemp);
-                Log.d(TAG, "Min-temp: " + minTemp);
-
                 if (maxTemp != 0) {
                     if (temp > maxTemp) {
                         Log.d(TAG, "Temperature above max");
@@ -192,7 +189,14 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver closeConnectionReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Received connectionStatus receiver");
+            boolean wasPlanned = intent.getBooleanExtra("wasPlanned", false);
+
+            Log.d(TAG, "wasPlanned: " + wasPlanned);
+
+            if (!wasPlanned) {
+                createNotification("Termometern tappade anslutningen", "Du är inte längre ansluten till termometern");
+            }
+
             currentDevice = null;
             toolbar.setTitle("Ej ansluten");
             temperature.setText("°C");
@@ -204,12 +208,8 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver limitReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Received limit");
             String type = intent.getStringExtra("type");
             int value = intent.getIntExtra("value", 0);
-
-            Log.d(TAG, "Received limit type: " + type);
-            Log.d(TAG, "Received limit value: " + value);
 
             switch (type) {
                 case "min":

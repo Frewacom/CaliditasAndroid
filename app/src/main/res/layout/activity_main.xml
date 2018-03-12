@@ -112,6 +112,10 @@
                 android:text="Alla funktioner finns ej för tillfället."
                 android:textAlignment="center" />
 
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="25dp" />
+
         </LinearLayout>
 
     </ScrollView>

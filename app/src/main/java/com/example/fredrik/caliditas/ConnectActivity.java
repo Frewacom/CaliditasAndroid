@@ -75,6 +75,7 @@ public class ConnectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent disconnectIntent = new Intent("closeConnection");
+                disconnectIntent.putExtra("wasPlanned", true);
                 LocalBroadcastManager.getInstance(ConnectActivity.this).sendBroadcast(disconnectIntent);
                 currentDevice = null;
 
