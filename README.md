@@ -1,7 +1,7 @@
 # Caliditas
-Arduino code: https://bitbucket.org/snippets/Frewacom/qegkXn/caliditasarduino
+Proof-of-concept wireless thermometer and humidity sensor, made for a friend of mine.
 
-This app was made for a friend of mine as a proof-of-concept. Due to time constraints they asked me to make it for them so that they would be able to show something at the UF-convention. The original idea uses radiowaves for long-distance communication, not bluetooth. 
+The app uses bluetooth instead of radio waves. This is because my friend needed something to show off at the UF-convention a few days later. It was the first app I ever created and I only had a few days to get it all working, so naturally the code is a bit messy.
 
-This was my first attempt at creating an app and it would only be used once, so naturally the code is a bit messy.
+You can find the arduino code here: https://gist.github.com/Frewacom/03887dbca5d33ade12d8c5247357bb69
 
